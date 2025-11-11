@@ -1,0 +1,143 @@
+/* === GitHub Project Explorer Ultra — Glassmorphism Theme === */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
+
+:root {
+  --accent1: #7c3aed;
+  --accent2: #06b6d4;
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --text-light: #e2e8f0;
+}
+
+* {
+  box-sizing: border-box;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+
+/* === Background === */
+body {
+  background:
+    radial-gradient(circle at 15% 25%, rgba(124, 58, 237, 0.15), transparent 40%),
+    radial-gradient(circle at 85% 80%, rgba(6, 182, 212, 0.12), transparent 40%),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160' fill='none' stroke='%23ffffff0d' stroke-width='1'><rect x='0' y='0' width='60' height='60' rx='6'/><path d='M80 20h60v60H80z'/><circle cx='130' cy='130' r='12'/><path d='M0 100h60v60H0z'/></svg>") repeat;
+  background-repeat: repeat;
+  background-size: 160px 160px;
+  color: var(--text-light);
+}
+
+/* === Glass Components === */
+.glass-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  transition: all .25s ease;
+}
+.glass-card:hover {
+  box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+}
+
+/* === Buttons === */
+.btn-accent {
+  background: linear-gradient(90deg, var(--accent1), var(--accent2));
+  color: #fff;
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 0.5rem 1rem;
+  transition: transform .2s, box-shadow .3s;
+}
+.btn-accent:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 20px rgba(99,102,241,0.4);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: #cbd5e1;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 999px;
+  padding: 0.4rem 1rem;
+  transition: background .2s, transform .2s;
+}
+.btn-ghost:hover {
+  background: rgba(255,255,255,0.1);
+  transform: translateY(-2px);
+}
+
+/* === Input Fields === */
+.input-field {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 999px;
+  padding: 0.6rem 0.9rem;
+  color: #fff;
+  width: 100%;
+  outline: none;
+  transition: border-color .2s;
+}
+.input-field:focus {
+  border-color: var(--accent1);
+}
+
+/* === Repo Cards === */
+.repo-card {
+  padding: 1.25rem;
+  border-radius: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  cursor: pointer;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  transition: all .3s ease;
+}
+.repo-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+}
+
+/* === Modal Styling === */
+#modal {
+  display: none;
+}
+#modal.show {
+  display: flex;
+}
+
+/* === Custom scrollbar === */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(var(--accent1), var(--accent2));
+  border-radius: 999px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(255,255,255,0.05);
+}
+
+/* === Small tweaks for cards and grids === */
+#repoGrid > div {
+  transition: transform .3s ease, box-shadow .3s ease;
+}
+#repoGrid > div:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+}
+
+/* === Footer === */
+footer {
+  margin-top: 2rem;
+  opacity: 0.7;
+  transition: opacity .2s;
+}
+footer:hover {
+  opacity: 1;
+}
+
+/* === Responsive === */
+@media (max-width: 768px) {
+  #searchInput { width: 180px; }
+}

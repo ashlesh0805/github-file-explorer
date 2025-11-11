@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>GitHub Project Explorer — Ultra</title>
+
+  <!-- Tailwind CDN (for quick demo) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Socket.IO client (served by backend if running express+socket.io) -->
+  <script src="/socket.io/socket.io.js"></script>
+
+  <!-- Icons -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+  <!-- Custom styles -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="antialiased bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-gray-900 via-slate-900 to-black text-white">
+  <div id="root" class="min-h-screen p-6 lg:p-10 max-w-7xl mx-auto">
+    <!-- Header -->
+    <header class="flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
+      <div class="flex items-center gap-4">
+        <div class="logo glass-card p-3 rounded-3xl shadow-xl flex items-center gap-3">
+          <svg class="w-10 h-10 transform -rotate-12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="2" y="2" width="20" height="20" rx="5" fill="url(#g)" />
+            <defs>
+              <linearGradient id="g" x1="0" x2="1">
+                <stop offset="0" stop-color="#7c3aed"/>
+                <stop offset="1" stop-color="#06b6d4"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <div>
+            <h1 class="text-2xl font-extrabold tracking-tight">GitHub Project Explorer</h1>
+            
+          </div>
+        </div>
+      </div>
+
+      <div class="w-full md:w-auto flex flex-col md:flex-row gap-3 items-stretch md:items-center">
+        <div class="glass-card px-3 py-2 rounded-full flex items-center gap-2 shadow">
+          <input id="searchInput" class="bg-transparent outline-none placeholder:text-gray-400 text-sm w-64 md:w-96" placeholder="Search repos, topics, owners (e.g. react, tailwindcss)"/>
+          <button id="searchBtn" class="btn-accent">Search</button>
+        </div>
+
+        <div class="glass-card px-3 py-2 rounded-full flex items-center gap-2 shadow">
+          <select id="sortSelect" class="bg-transparent text-sm outline-none">
+            <option value="stars">Sort: Stars</option>
+            <option value="updated">Sort: Recently updated</option>
+            <option value="forks">Sort: Forks</option>
+          </select>
+          <select id="orderSelect" class="bg-transparent text-sm outline-none">
+            <option value="desc">Desc</option>
+            <option value="asc">Asc</option>
+          </select>
+        </div>
+
+        <div id="authArea" class="glass-card px-3 py-2 rounded-full flex items-center gap-2 shadow">
+          <!-- Auth UI populated via JS -->
+          <a id="signinBtn" href="/auth/login" class="btn-ghost">Sign in with GitHub</a>
+          <div id="userBadge" class="hidden items-center gap-2">
+            <img id="userAvatar" src="" class="w-8 h-8 rounded-full"/>
+            <span id="userLogin" class="text-sm"></span>
+            <button id="signoutBtn" class="btn-ghost">Sign out</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main layout -->
+    <main class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Left: filters & bookmarks -->
+      <aside class="lg:col-span-1 space-y-6">
+        <div class="glass-card p-4 rounded-2xl shadow">
+          <h3 class="font-semibold text-lg">Filters</h3>
+          <div class="mt-3 space-y-3">
+            <input id="langFilter" placeholder="Language (e.g. JavaScript)" class="input-field w-full"/>
+            <input id="minStars" type="number" placeholder="Min stars (e.g. 1000)" class="input-field w-full"/>
+            <div class="flex items-center gap-2">
+              <button id="applyFilters" class="btn-accent w-full">Apply Filters</button>
+              <button id="clearFilters" class="btn-ghost w-full">Clear</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-card p-4 rounded-2xl shadow">
+          <h3 class="font-semibold text-lg">Bookmarks</h3>
+          <div id="bookmarksList" class="mt-3 space-y-3 max-h-64 overflow-auto"></div>
+        </div>
+
+        <div class="glass-card p-4 rounded-2xl shadow">
+          <h3 class="font-semibold text-lg">AI Tools</h3>
+          <p class="text-sm text-gray-300 mt-2">Plug your AI endpoint to get repo summaries, TODO lists, and code insights.</p>
+          <input id="aiEndpoint" placeholder="AI endpoint URL (POST /summarize)" class="input-field mt-3"/>
+          <input id="aiKey" placeholder="AI API key (optional header)" class="input-field mt-2"/>
+          <button id="saveAiBtn" class="btn-accent mt-3 w-full">Save AI Settings</button>
+          <p id="aiHint" class="text-xs text-gray-400 mt-2">Demo mode: uses local summarizer if no endpoint provided.</p>
+        </div>
+      </aside>
+
+      <!-- Middle: repo grid -->
+      <section id="reposSection" class="lg:col-span-2 space-y-6">
+        <div id="statsBar" class="glass-card p-4 rounded-2xl shadow flex items-center justify-between gap-4">
+          <div>
+            <h3 class="text-lg font-semibold" id="resultsCount">Trending results</h3>
+            <p id="resultsSubtitle" class="text-sm text-gray-300">Showing top repositories</p>
+          </div>
+          <div class="flex items-center gap-4">
+            <div class="w-72">
+              <canvas id="starsChart" height="60"></canvas>
+            </div>
+            <button id="refreshBtn" class="btn-ghost">Refresh</button>
+            <button id="clearBookmarksBtn" class="btn-ghost">Clear Bookmarks</button>
+          </div>
+        </div>
+
+        <div id="repoGrid" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+
+        <div id="emptyState" class="text-center text-gray-400">No results yet — try searching for "react", "tailwind", or "machine-learning".</div>
+      </section>
+    </main>
+
+    <!-- Repo Detail Modal -->
+    <div id="modal" class="fixed inset-0 z-50 hidden items-center justify-center p-6">
+      <div class="modal-backdrop absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+      <div class="glass-card relative z-10 max-w-4xl w-full rounded-3xl p-6 shadow-2xl">
+        <button id="modalClose" class="absolute right-4 top-4 material-icons text-2xl">close</button>
+        <div id="modalContent"></div>
+      </div>
+    </div>
+
+    <!-- small footer -->
+    <footer class="mt-10 text-center text-sm text-gray-400">Built with ❤️ — paste these files into a single folder and open index.html (or serve from Express for full GitHub integration)</footer>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
